@@ -19,7 +19,6 @@ class HttpSegment extends RemoteSegment
     protected $exception;
 
     public function setException(Exception $ex) {
-    	$this->setFault(true);
     	$this->exception = $ex;
     	return $this;
     }
@@ -54,13 +53,20 @@ class HttpSegment extends RemoteSegment
 		$exception['message'] = $this->exception->getMessage();
 		$exception['type'] = get_class($this->exception);
 
-    	$exception['stack'] = array_map(function($e) {
-		    return [
-			    'path' => $e->file,
-			    'line' => $e->line,
-			    'label' => $e->function
-		    ];
-	    }, $this->exception->getTrace());
+		$exception['stack'] = [];
+
+		foreach($this->exception->getTrace() as $frame) {
+			$thisFrame = [
+				'path' => $frame['file'],
+				'line' => $frame['line'],
+				'label' => $frame['function']
+			];
+
+			if(isset($frame['class'])) {
+				$thisFrame['label'] = "{$frame['class']}::{$thisFrame['label']}";
+			}
+			$exception['stack'][] = $thisFrame;
+		}
 
     	return [ $exception ];
 	}
