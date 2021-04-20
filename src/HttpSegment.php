@@ -32,17 +32,18 @@ class HttpSegment extends RemoteSegment
         $data = parent::jsonSerialize();
 
         $data['http'] = $this->serialiseHttpData();
-
-		if($this->exception) {
-			$data['cause'] = $this->generateCause();
-		}
+		$data['cause'] = $this->generateCause();
 
 	    return array_filter($data);
     }
 
 	private function generateCause() {
-		$cause = [];
-		$cause['working_directory'] = basename($this->exception->getFile());
+		if(!$this->exception) {
+			return false;
+		}
+
+    	$cause = [];
+		$cause['working_directory'] = dirname($this->exception->getFile());
 		$cause['paths'] = [];   // not used in PHP exceptions
 		$cause['exceptions'] = $this->mapExceptions();
 		return $cause;
@@ -52,17 +53,15 @@ class HttpSegment extends RemoteSegment
 		$exception = [];
 		$exception['message'] = $this->exception->getMessage();
 		$exception['type'] = get_class($this->exception);
-    	$exception['stack'] = array_map('mapTrace', $this->exception->getTrace());
+
+    	$exception['stack'] = array_map(function($e) {
+		    return [
+			    'path' => $e->file,
+			    'line' => $e->line,
+			    'label' => $e->function
+		    ];
+	    }, $this->exception->getTrace());
 
     	return [ $exception ];
 	}
-
-	private function mapTrace($frame) {
-		$trace = [];
-		$trace['path'] = $frame->file;
-		$trace['line'] = $frame->line;
-		$trace['label'] = $frame->function;
-		return $trace;
-	}
-
 }
