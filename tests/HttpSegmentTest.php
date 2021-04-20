@@ -25,4 +25,17 @@ class HttpSegmentTest extends TestCase
         $this->assertEquals('GET', $serialised['http']['request']['method']);
         $this->assertEquals(200, $serialised['http']['response']['status']);
     }
+
+	public function testSerialisesWithExceptionCorrectly()
+	{
+		$segment = new HttpSegment();
+		$segment->setUrl('http://example.com/')
+			->setMethod('GET')
+			->setResponseCode(500)
+			->setException(new \Exception('test exception'));
+
+		$serialised = $segment->jsonSerialize();
+
+		$this->assertArrayHasKey('cause', $serialised['http']['request']);
+	}
 }

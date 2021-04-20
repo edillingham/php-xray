@@ -2,6 +2,8 @@
 
 namespace Pkerrigan\Xray;
 
+use Exception;
+
 /**
  *
  * @author Patrick Kerrigan (patrickkerrigan.uk)
@@ -10,6 +12,16 @@ namespace Pkerrigan\Xray;
 class HttpSegment extends RemoteSegment
 {
     use HttpTrait;
+
+	/**
+	 * @var Exception
+	 */
+    protected $exception;
+
+    public function setException(Exception $ex) {
+    	$this->setFault(true);
+    	$this->exception = $ex;
+    }
 
     /**
      * @inheritdoc
@@ -20,6 +32,36 @@ class HttpSegment extends RemoteSegment
 
         $data['http'] = $this->serialiseHttpData();
 
-        return array_filter($data);
+		if($this->exception) {
+			$data['cause'] = $this->generateCause();
+		}
+
+	    return array_filter($data);
     }
+
+	private function generateCause() {
+		$cause = [];
+		$cause['working_directory'] = basename($this->exception->getFile());
+		$cause['paths'] = [];   // not used in PHP exceptions
+		$cause['exceptions'] = $this->mapExceptions();
+		return $cause;
+	}
+
+	private function mapExceptions() {
+		$exception = [];
+		$exception['message'] = $this->exception->getMessage();
+		$exception['type'] = get_class($this->exception);
+    	$exception['stack'] = array_map('mapTrace', $this->exception->getTrace());
+
+    	return [ $exception ];
+	}
+
+	private function mapTrace($frame) {
+		$trace = [];
+		$trace['path'] = $frame->file;
+		$trace['line'] = $frame->line;
+		$trace['label'] = $frame->function;
+		return $trace;
+	}
+
 }
