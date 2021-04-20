@@ -21,6 +21,7 @@ class HttpSegment extends RemoteSegment
     public function setException(Exception $ex) {
     	$this->setFault(true);
     	$this->exception = $ex;
+    	return $this;
     }
 
     /**
