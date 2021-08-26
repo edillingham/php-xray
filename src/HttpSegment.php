@@ -2,7 +2,7 @@
 
 namespace Pkerrigan\Xray;
 
-use Exception;
+use Throwable;
 
 /**
  *
@@ -14,11 +14,11 @@ class HttpSegment extends RemoteSegment
     use HttpTrait;
 
 	/**
-	 * @var Exception
+	 * @var Throwable
 	 */
     protected $exception;
 
-    public function setException(Exception $ex) {
+    public function setException(Throwable $ex) {
     	$this->exception = $ex;
     	return $this;
     }
