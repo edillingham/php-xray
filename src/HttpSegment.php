@@ -57,8 +57,8 @@ class HttpSegment extends RemoteSegment
 
 		foreach($this->exception->getTrace() as $frame) {
 			$thisFrame = [
-				'path' => $frame['file'],
-				'line' => $frame['line'],
+				'path' => $frame['file'] ?? '<internal>',
+				'line' => $frame['line'] ?? 0,
 				'label' => $frame['function']
 			];
 
